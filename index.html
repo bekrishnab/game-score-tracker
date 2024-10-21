@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Score Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 5px;
+            width: 100%; /* Full width for inputs and buttons */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        button {
+            margin-top: 10px; /* More spacing for the button */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 2px solid black; /* Outer border for the table */
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid black; /* Cell borders */
+        }
+        .total-row td {
+            font-weight: bold; /* Bold for total scores */
+            background-color: #f0f0f0; /* Light background for totals */
+        }
+        .stats {
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            input, button {
+                font-size: 14px; /* Smaller text for smaller screens */
+            }
+            th, td {
+                padding: 8px; /* Smaller padding for table cells */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Score Tracker</h1>
+
+        <!-- Add Player Form -->
+        <div class="form-group">
+            <input type="text" id="playerName" placeholder="Enter player name" required>
+            <button onclick="addPlayer()">Add Player</button>
+        </div>
+
+        <!-- Score Table -->
+        <table id="playerTable">
+            <thead>
+                <tr id="playerRow"></tr> <!-- Players will be added here -->
+            </thead>
+            <tbody id="scoreBody"></tbody>
+            <tfoot id="totalRow" style="display:none;"></tfoot>
+        </table>
+
+        <!-- Add Round Button -->
+        <button onclick="addRound()" id="addRoundButton" style="display:none;">Add Round</button>
+
+        <!-- Statistics Section -->
+        <div class="stats">
+            <h3>Statistics</h3>
+            <p id="highestScorer">Highest Scorer: N/A</p>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let rounds = 0;
+
+        function addPlayer() {
+            const playerNameInput = document.getElementById('playerName');
+            const playerName = playerNameInput.value.trim();
+            if (playerName) {
+                players.push(playerName);
+                playerNameInput.value = '';
+                renderPlayerRow();
+                document.getElementById('addRoundButton').style.display = 'block'; // Show add round button
+            }
+        }
+
+        function renderPlayerRow() {
+            const playerRow = document.getElementById('playerRow');
+            playerRow.innerHTML = ''; // Clear previous player row
+
+            // Create player name headers
+            players.forEach(player => {
+                const th = document.createElement('th');
+                th.innerText = player;
+                playerRow.appendChild(th);
+            });
+
+            // Create a new row for total scores
+            const totalRow = document.getElementById('totalRow');
+            totalRow.innerHTML = ''; // Clear previous total row
+            players.forEach(() => {
+                const td = document.createElement('td');
+                td.innerText = '0'; // Initialize total to 0
+                totalRow.appendChild(td);
+            });
+            totalRow.style.display = 'table-row'; // Show total row
+        }
+
+        function addRound() {
+            const scoreBody = document.getElementById('scoreBody');
+            const newRow = document.createElement('tr');
+
+            players.forEach((_, index) => {
+                const td = document.createElement('td');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Score';
+                input.oninput = () => calculateTotals();
+                td.appendChild(input);
+                newRow.appendChild(td);
+            });
+
+            scoreBody.appendChild(newRow);
+            rounds++;
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            const scoreRows = document.querySelectorAll('#scoreBody tr');
+            const totalCells = document.querySelectorAll('#totalRow td');
+
+            // Initialize totals
+            const totals = Array(players.length).fill(0);
+
+            scoreRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach((input, index) => {
+                    const score = parseFloat(input.value) || 0; // Default to 0 if empty
+                    totals[index] += score; // Add to total for that player
+                });
+            });
+
+            // Update total scores
+            totals.forEach((total, index) => {
+                totalCells[index].innerText = total; // Update the total score in the footer
+            });
+
+            updateHighestScorer();
+        }
+
+        function updateHighestScorer() {
+            const totalCells = document.querySelectorAll('#totalRow td');
+            let highestScore = -1;
+            let highestScorer = '';
+
+            totalCells.forEach((cell, index) => {
+                const score = parseFloat(cell.innerText);
+                if (score > highestScore) {
+                    highestScore = score;
+                    highestScorer = players[index];
+                }
+            });
+
+            document.getElementById('highestScorer').innerText = highestScorer ? `Highest Scorer: ${highestScorer} (${highestScore})` : 'Highest Scorer: N/A';
+        }
+    </script>
+</body>
+</html>
